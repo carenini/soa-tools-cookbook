@@ -1,0 +1,3 @@
+baseimage needs to know about vagrant user
+    * load certificate
+    * start sshd?
