@@ -4,8 +4,9 @@
 components = %w(greg is)
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "canonical-ubuntu-12.04"
-  config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/precise/current/precise-server-cloudimg-amd64-vagrant-disk1.box"
+  config.vm.box = "fgrehm/precise64-lxc"
+  #config.vm.box = "canonical-ubuntu-12.04"
+  #config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/precise/current/precise-server-cloudimg-amd64-vagrant-disk1.box"
   
   # Ensure Chef is installed for provisioning
   config.omnibus.chef_version = :latest
@@ -20,11 +21,18 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--memory", "2048", "--cpus", "2"]
   end
   
+  config.vm.provider :lxc do |lxc|
+      lxc.customize 'cgroup.memory.limit_in_bytes', '2048M'
+  end
+  
   components.each_with_index do |component, index|
     config.vm.define component do |cmp|
       cmp.vm.network :private_network, ip: "33.33.33.#{index + 30}"
       
       cmp.vm.hostname = "#{component}.wso2.local"
+      node.vm.provider :lxc do |lxc|
+          lxc.container_name = "#{component}.wso2.local"
+      end
       
       cmp.vm.provision :chef_solo do |chef|
         chef.json = {
